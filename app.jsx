@@ -119,30 +119,45 @@ function App() {
   }, [settings.theme]);
 
   useEffect(() => {
-    // si Supabase configuré, charger les activités depuis la base
+    // si Supabase est configuré, charger puis rafraîchir toutes les 3s
     let cancelled = false;
-    async function loadActivities() {
+    let timer = null;
+    async function load() {
       if (!supa) return;
-      const { data, error } = await supa.from(SUPA_TABLE_ACTIVITIES).select("id, name, price, currency, days, notes").order("name", { ascending: true });
-      if (!cancelled) {
-        if (error) {
-          console.warn("Supabase load error", error);
-        } else if (Array.isArray(data)) {
-          // normaliser les types
-          const list = data.map((a) => ({
-            id: String(a.id),
-            name: a.name || "",
-            price: Number(a.price) || 0,
-            currency: a.currency || settings.currency || "EGP",
-            days: Array.isArray(a.days) ? a.days.map((n) => Number(n)) : [],
-            notes: a.notes || "",
-          }));
-          setActivities(list);
-        }
+      const { data, error } = await supa
+        .from(SUPA_TABLE_ACTIVITIES)
+        .select("id, name, price, currency, days, notes")
+        .order("name", { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        console.warn("Supabase load error", error);
+        return;
+      }
+      if (Array.isArray(data)) {
+        const list = data.map((a) => ({
+          id: String(a.id),
+          name: a.name || "",
+          price: Number(a.price) || 0,
+          currency: a.currency || settings.currency || "EGP",
+          days: Array.isArray(a.days) ? a.days.map((n) => Number(n)) : [],
+          notes: a.notes || "",
+        }));
+        setActivities((prev) => {
+          const same = JSON.stringify(prev) === JSON.stringify(list);
+          return same ? prev : list;
+        });
       }
     }
-    loadActivities();
-    return () => { cancelled = true; };
+    // premier chargement
+    load();
+    // polling 3s
+    if (supa) {
+      timer = setInterval(load, 3000);
+    }
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
   }, [supa]);
 
   return (
