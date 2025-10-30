@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr" data-theme="ocean">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hurghada Dream – Mini site interne</title>
+    <link rel="stylesheet" href="./theme.css" />
+    <!-- Tailwind CDN (no build) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Tailwind config (optional minor tweaks)
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: 'rgb(var(--brand-50))',
+                100: 'rgb(var(--brand-100))',
+                200: 'rgb(var(--brand-200))',
+                300: 'rgb(var(--brand-300))',
+                400: 'rgb(var(--brand-400))',
+                500: 'rgb(var(--brand-500))',
+                600: 'rgb(var(--brand-600))',
+                700: 'rgb(var(--brand-700))',
+                800: 'rgb(var(--brand-800))',
+                900: 'rgb(var(--brand-900))',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <!-- React + ReactDOM + Babel (for JSX in browser) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+    <script type="text/babel" src="./app.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+/* Thème simple – modifiez les variables pour changer l'apparence.
+   Trois presets dispo: ocean (par défaut), sunset, emerald.
+   Pour changer: <html data-theme="sunset"> dans index.html
+*/
+:root {
+  --radius: 1.25rem;
+  --duration: 0.25s;
+  --ease: cubic-bezier(.5,.1,.1,1.2);
+}
+
+body, html {
+  transition: background 0.6s var(--ease), color 0.3s var(--ease);
+}
+
+.badge-day {
+  display: inline-block;
+  border-radius: 9999px;
+  background: rgb(var(--brand-200), 0.25);
+  color: rgb(var(--brand-700));
+  padding: 0.2em 0.85em;
+  font-size: 0.95em;
+  font-weight: 500;
+  border: 1px solid rgb(var(--brand-200), 0.6);
+  transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
+}
+
+.card-activity {
+  background: white;
+  border-radius: var(--radius);
+  border: 1.5px solid rgba(0,110,255,0.04);
+  padding: 1.4em 1.1em;
+  margin-bottom: 0.9em;
+  box-shadow: 0 3px 16px rgba(39,80,200,0.08);
+  transition: box-shadow .18s var(--ease), border-color .18s var(--ease);
+}
+.card-activity:hover {
+  box-shadow: 0 6px 36px rgba(39,80,200,0.13);
+  border-color: rgb(var(--brand-400),0.46);
+}
+
+/* Boutons internes principaux */
+.btn-primary {
+  background: linear-gradient(90deg, rgb(var(--brand-400)), rgb(var(--brand-600)));
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: bold;
+  padding: 0.6em 1.8em;
+  font-size: 1em;
+  letter-spacing: .01em;
+  box-shadow: 0 3px 11px rgba(60,140,218,0.12);
+  transition: background .21s var(--ease), box-shadow .21s;
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, rgb(var(--brand-500)), rgb(var(--brand-700)));
+  box-shadow: 0 4px 18px rgba(20,96,180,0.22);
+}
+.btn-outline {
+  background: transparent;
+  color: rgb(var(--brand-700));
+  border: 2px solid rgb(var(--brand-200));
+  border-radius: var(--radius);
+  font-weight: 500;
+  padding: 0.6em 1.5em;
+  font-size: 1em;
+  transition: background .18s, color .18s;
+}
+.btn-outline:hover {
+  background: rgb(var(--brand-100));
+  color: rgb(var(--brand-700));
+}
+
+/* Preset: Ocean */
+html[data-theme="ocean"] {
+  --brand-50: 240 249 255;
+  --brand-100: 224 242 254;
+  --brand-200: 186 230 253;
+  --brand-300: 125 211 252;
+  --brand-400: 56 189 248;
+  --brand-500: 14 165 233;
+  --brand-600: 2 132 199;
+  --brand-700: 3 105 161;
+  --brand-800: 7 89 133;
+  --brand-900: 12 74 110;
+}
+
+/* Preset: Sunset */
+html[data-theme="sunset"] {
+  --brand-50: 255 247 237;
+  --brand-100: 255 237 213;
+  --brand-200: 254 215 170;
+  --brand-300: 253 186 116;
+  --brand-400: 251 146 60;
+  --brand-500: 249 115 22;
+  --brand-600: 234 88 12;
+  --brand-700: 194 65 12;
+  --brand-800: 154 52 18;
+  --brand-900: 124 45 18;
+}
+
+/* Preset: Emerald */
+html[data-theme="emerald"] {
+  --brand-50: 236 253 245;
+  --brand-100: 209 250 229;
+  --brand-200: 167 243 208;
+  --brand-300: 110 231 183;
+  --brand-400: 52 211 153;
+  --brand-500: 16 185 129;
+  --brand-600: 5 150 105;
+  --brand-700: 4 120 87;
+  --brand-800: 6 95 70;
+  --brand-900: 6 78 59;
+}
+
+/* Utilitaires arrondis basés sur le thème */
+.rounded-theme { border-radius: var(--radius); }
+.rounded-theme-2x { border-radius: calc(var(--radius) * 1.6); }
+.shadow-theme { box-shadow: 0 6px 20px rgba(2, 6, 23, 0.06); }
+
+/* Titres principaux */
+h1, h2, h3, .title-section {
+  color: rgb(var(--brand-700));
+  font-family: 'Montserrat', 'Roboto', Arial, sans-serif;
+}
+
+input, select, textarea {
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: rgb(var(--brand-400));
+  box-shadow: 0 0 0 2px rgb(var(--brand-200));
+}
+
+.table tr th, .table tr td {
+  border-bottom: 1.2px solid rgba(0,0,0,0.075);
+}
+
+.section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid rgb(var(--brand-100));
+}
+
+/* Ajoute du background doux à chaque theme */
+html[data-theme="ocean"] body {
+  background: linear-gradient(115deg, #f1f8fc 0%, #ebf8ff 80%);
+}
+html[data-theme="sunset"] body {
+  background: linear-gradient(110deg, #fff7ed 0%, #fceded 80%);
+}
+html[data-theme="emerald"] body {
+  background: linear-gradient(115deg, #f4fcf8 0%, #e8faec 85%);
+}
