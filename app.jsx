@@ -47,7 +47,7 @@ const exampleActivities = [
     id: (crypto?.randomUUID?.() || String(Math.random())).toString(),
     name: "Safari Quad (3h)",
     price: 900,
-    currency: "EGP",
+    currency: "EUR",
     days: [1, 3, 5],
     notes: "Transfert inclus",
   },
@@ -55,7 +55,7 @@ const exampleActivities = [
     id: (crypto?.randomUUID?.() || String(Math.random())).toString(),
     name: "Plongée – Bateau (2 plongées)",
     price: 2500,
-    currency: "EGP",
+    currency: "EUR",
     days: [2, 4, 6],
     notes: "Équipement en option",
   },
@@ -63,7 +63,7 @@ const exampleActivities = [
     id: (crypto?.randomUUID?.() || String(Math.random())).toString(),
     name: "Île Giftun – Snorkeling",
     price: 1800,
-    currency: "EGP",
+    currency: "EUR",
     days: [0, 2, 5],
     notes: "Déjeuner inclus",
   },
@@ -442,8 +442,8 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
   }
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6 print:block">
-      <div className="lg:col-span-2 bg-base-100 rounded-theme-2x border p-4 sm:p-6 shadow-theme print:shadow-none print:border-0">
+    <div className="print:block">
+      <div className="bg-base-100 rounded-theme-2x border p-4 sm:p-6 shadow-theme print:shadow-none print:border-0">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold">Devis</h2>
@@ -549,11 +549,6 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
           </div>
         </div>
       </div>
-
-      <aside className="bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme h-fit print:hidden">
-        <h3 className="font-semibold mb-3">Dispos le jour sélectionné</h3>
-        <DayAvailability activities={activities} dateStr={q.date} />
-      </aside>
     </div>
   );
 }
