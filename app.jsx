@@ -86,6 +86,18 @@ function useLocalState(key, initial) {
   return [state, setState];
 }
 
+const SUPA_TABLE_ACTIVITIES = "activities";
+
+function createSupabaseClient(url, anonKey) {
+  try {
+    if (!url || !anonKey) return null;
+    if (!window.supabase) return null;
+    return window.supabase.createClient(url, anonKey);
+  } catch {
+    return null;
+  }
+}
+
 function App() {
   const [tab, setTab] = useState("devis");
   const [activities, setActivities] = useLocalState(LS_KEY_ACTIVITIES, exampleActivities);
@@ -95,12 +107,43 @@ function App() {
     address: "Hurghada, Red Sea, Égypte",
     currency: "EGP",
     theme: "ocean", // ocean | sunset | emerald
+    supabaseUrl: "https://lttzfsxlgsvwpeapvypf.supabase.co",
+    supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0dHpmc3hsZ3N2d3BlYXB2eXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MjMwNDMsImV4cCI6MjA3NzM5OTA0M30.PPFsKpsX3_N_syS9bhgNN94X39Y4mmB-YigbaDPo2Uk",
   });
+
+  const supa = React.useMemo(() => createSupabaseClient(settings.supabaseUrl, settings.supabaseAnonKey), [settings.supabaseUrl, settings.supabaseAnonKey]);
 
   useEffect(() => {
     // apply theme from settings
     document.documentElement.setAttribute("data-theme", settings.theme || "ocean");
   }, [settings.theme]);
+
+  useEffect(() => {
+    // si Supabase configuré, charger les activités depuis la base
+    let cancelled = false;
+    async function loadActivities() {
+      if (!supa) return;
+      const { data, error } = await supa.from(SUPA_TABLE_ACTIVITIES).select("id, name, price, currency, days, notes").order("name", { ascending: true });
+      if (!cancelled) {
+        if (error) {
+          console.warn("Supabase load error", error);
+        } else if (Array.isArray(data)) {
+          // normaliser les types
+          const list = data.map((a) => ({
+            id: String(a.id),
+            name: a.name || "",
+            price: Number(a.price) || 0,
+            currency: a.currency || settings.currency || "EGP",
+            days: Array.isArray(a.days) ? a.days.map((n) => Number(n)) : [],
+            notes: a.notes || "",
+          }));
+          setActivities(list);
+        }
+      }
+    }
+    loadActivities();
+    return () => { cancelled = true; };
+  }, [supa]);
 
   return (
     <div className="min-h-screen">
@@ -139,6 +182,7 @@ function App() {
             activities={activities}
             setActivities={setActivities}
             defaultCurrency={settings.currency}
+            supa={supa}
           />
         )}
         {tab === "availability" && <AvailabilityPage activities={activities} />}
@@ -199,6 +243,10 @@ function Header({ settings, setSettings }) {
                   </select>
                 </div>
               </div>
+              <div className="grid grid-cols-1 gap-3">
+                <TextField label="Supabase URL (optionnel)" value={draft.supabaseUrl || ""} onChange={(v) => setDraft((d) => ({ ...d, supabaseUrl: v }))} placeholder="https://xxx.supabase.co" />
+                <TextField label="Supabase Anon Key (optionnel)" value={draft.supabaseAnonKey || ""} onChange={(v) => setDraft((d) => ({ ...d, supabaseAnonKey: v }))} placeholder="eyJhbGci…" />
+              </div>
             </div>
             <div className="p-5 border-t bg-slate-50 flex justify-end gap-2 rounded-b-theme">
               <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-theme border">Annuler</button>
@@ -240,31 +288,68 @@ function TextField({ label, value, onChange, placeholder, type = "text" }) {
   );
 }
 
-function ActivitiesPage({ activities, setActivities, defaultCurrency }) {
+function ActivitiesPage({ activities, setActivities, defaultCurrency, supa }) {
   const empty = { id: "", name: "", price: 0, currency: defaultCurrency, days: [], notes: "" };
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
+  const [busy, setBusy] = useState(false);
 
   function reset() {
     setForm({ ...empty, currency: defaultCurrency });
     setEditingId(null);
   }
 
-  function save() {
+  async function save() {
     if (!form.name) return alert("Nom requis");
     if (!form.currency) return alert("Devise requise");
-    if (editingId) {
-      setActivities((list) => list.map((a) => (a.id === editingId ? { ...form, id: editingId } : a)));
-    } else {
-      setActivities((list) => [...list, { ...form, id: (crypto?.randomUUID?.() || String(Math.random())).toString() }]);
+    setBusy(true);
+    try {
+      if (supa) {
+        const row = editingId ? { ...form, id: editingId } : { ...form, id: (crypto?.randomUUID?.() || String(Math.random())).toString() };
+        const { data, error } = await supa.from(SUPA_TABLE_ACTIVITIES).upsert({
+          id: row.id,
+          name: row.name,
+          price: row.price,
+          currency: row.currency,
+          days: row.days,
+          notes: row.notes,
+        }).select("id, name, price, currency, days, notes").single();
+        if (error) throw error;
+        const saved = data || row;
+        if (editingId) {
+          setActivities((list) => list.map((a) => (a.id === editingId ? saved : a)));
+        } else {
+          setActivities((list) => [...list, saved]);
+        }
+      } else {
+        if (editingId) {
+          setActivities((list) => list.map((a) => (a.id === editingId ? { ...form, id: editingId } : a)));
+        } else {
+          setActivities((list) => [...list, { ...form, id: (crypto?.randomUUID?.() || String(Math.random())).toString() }]);
+        }
+      }
+      reset();
+    } catch (e) {
+      alert("Erreur enregistrement: " + (e?.message || e));
+    } finally {
+      setBusy(false);
     }
-    reset();
   }
 
-  function removeItem(id) {
-    if (confirm("Supprimer cette activité ?")) {
+  async function removeItem(id) {
+    if (!confirm("Supprimer cette activité ?")) return;
+    setBusy(true);
+    try {
+      if (supa) {
+        const { error } = await supa.from(SUPA_TABLE_ACTIVITIES).delete().eq("id", id);
+        if (error) throw error;
+      }
       setActivities((list) => list.filter((a) => a.id !== id));
       if (editingId === id) reset();
+    } catch (e) {
+      alert("Erreur suppression: " + (e?.message || e));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -295,7 +380,7 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency }) {
             <label className="block text-xs font-medium text-slate-600 mb-1">Jours disponibles</label>
             <div className="flex flex-wrap gap-2">
               {WEEKDAYS_FR.map((d) => (
-                <button key={d.key} type="button" onClick={() => toggleDay(d.key)} className={classNames("px-3 py-1.5 rounded-theme border text-sm", form.days.includes(d.key) ? "bg-sky-600 text-white" : "bg-white")}>
+                <button key={d.key} type="button" disabled={busy} onClick={() => toggleDay(d.key)} className={classNames("px-3 py-1.5 rounded-theme border text-sm", form.days.includes(d.key) ? "bg-sky-600 text-white" : "bg-white")}>
                   {d.label}
                 </button>
               ))}
@@ -307,9 +392,10 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency }) {
           </div>
         </div>
         <div className="mt-4 flex gap-2">
-          <button onClick={save} className="px-4 py-2 rounded-theme bg-sky-600 text-white">{editingId ? "Mettre à jour" : "Ajouter"}</button>
-          <button onClick={reset} className="px-4 py-2 rounded-theme border">Réinitialiser</button>
+          <button onClick={save} disabled={busy} className="px-4 py-2 rounded-theme bg-sky-600 text-white">{editingId ? "Mettre à jour" : "Ajouter"}</button>
+          <button onClick={reset} disabled={busy} className="px-4 py-2 rounded-theme border">Réinitialiser</button>
         </div>
+        {supa ? <p className="text-xs text-slate-500 mt-2">Synchro: Supabase activé</p> : <p className="text-xs text-slate-500 mt-2">Synchro: local uniquement</p>}
       </div>
 
       <div className="lg:col-span-2 bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme">
@@ -344,7 +430,7 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency }) {
                     <td className="py-2 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => { setEditingId(a.id); setForm({ ...a }); }} className="px-3 py-1.5 rounded-theme border">Modifier</button>
-                        <button onClick={() => removeItem(a.id)} className="px-3 py-1.5 rounded-theme border bg-rose-50 text-rose-700">Supprimer</button>
+                        <button onClick={() => removeItem(a.id)} disabled={busy} className="px-3 py-1.5 rounded-theme border bg-rose-50 text-rose-700">Supprimer</button>
                       </div>
                     </td>
                   </tr>
