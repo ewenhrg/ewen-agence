@@ -26,7 +26,7 @@ function classNames(...arr) {
   return arr.filter(Boolean).join(" ");
 }
 
-function formatMoney(value, currency = "EGP") {
+function formatMoney(value, currency = "EUR") {
   try {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
@@ -105,7 +105,7 @@ function App() {
     agencyName: "Hurghada Dream",
     phone: "+20 …",
     address: "Hurghada, Red Sea, Égypte",
-    currency: "EGP",
+    currency: "EUR",
     theme: "ocean", // ocean | sunset | emerald
     supabaseUrl: "https://lttzfsxlgsvwpeapvypf.supabase.co",
     supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0dHpmc3hsZ3N2d3BlYXB2eXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MjMwNDMsImV4cCI6MjA3NzM5OTA0M30.PPFsKpsX3_N_syS9bhgNN94X39Y4mmB-YigbaDPo2Uk",
@@ -172,12 +172,6 @@ function App() {
           <TabButton active={tab === "activities"} onClick={() => setTab("activities")}>
             Activités
           </TabButton>
-          <TabButton active={tab === "availability"} onClick={() => setTab("availability")}>
-            Disponibilités
-          </TabButton>
-          <TabButton active={tab === "prices"} onClick={() => setTab("prices")}>
-            Tarifs
-          </TabButton>
         </div>
       </nav>
 
@@ -200,8 +194,6 @@ function App() {
             supa={supa}
           />
         )}
-        {tab === "availability" && <AvailabilityPage activities={activities} />}
-        {tab === "prices" && <PricesPage activities={activities} currency={settings.currency} />}
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 pb-10 pt-4 text-center text-sm text-slate-500">
@@ -221,55 +213,9 @@ function Header({ settings, setSettings }) {
       <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{settings.agencyName}</h1>
-          <p className="text-sm text-slate-600">Outil interne : devis, activités, disponibilités, tarifs</p>
+          <p className="text-sm text-slate-600">Outil interne : devis et activités</p>
         </div>
-        <button
-          className="rounded-theme border px-3 py-2 text-sm bg-white hover:bg-slate-50 shadow-theme"
-          onClick={() => setOpen(true)}
-        >
-          Paramètres
-        </button>
       </div>
-
-      {open && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-theme-2x w-full max-w-xl shadow-theme">
-            <div className="p-5 border-b flex items-center justify-between">
-              <h2 className="font-semibold text-lg">Paramètres agence</h2>
-              <button className="text-slate-500" onClick={() => setOpen(false)}>✕</button>
-            </div>
-            <div className="p-5 space-y-4">
-              <TextField label="Nom de l'agence" value={draft.agencyName} onChange={(v) => setDraft((d) => ({ ...d, agencyName: v }))} />
-              <TextField label="Téléphone" value={draft.phone} onChange={(v) => setDraft((d) => ({ ...d, phone: v }))} />
-              <TextField label="Adresse" value={draft.address} onChange={(v) => setDraft((d) => ({ ...d, address: v }))} />
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Devise par défaut</label>
-                  <select className="w-full border rounded-theme px-3 py-2" value={draft.currency} onChange={(e) => setDraft((d) => ({ ...d, currency: e.target.value }))}>
-                    {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Thème</label>
-                  <select className="w-full border rounded-theme px-3 py-2" value={draft.theme} onChange={(e) => setDraft((d) => ({ ...d, theme: e.target.value }))}>
-                    <option value="ocean">Ocean</option>
-                    <option value="sunset">Sunset</option>
-                    <option value="emerald">Emerald</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <TextField label="Supabase URL (optionnel)" value={draft.supabaseUrl || ""} onChange={(v) => setDraft((d) => ({ ...d, supabaseUrl: v }))} placeholder="https://xxx.supabase.co" />
-                <TextField label="Supabase Anon Key (optionnel)" value={draft.supabaseAnonKey || ""} onChange={(v) => setDraft((d) => ({ ...d, supabaseAnonKey: v }))} placeholder="eyJhbGci…" />
-              </div>
-            </div>
-            <div className="p-5 border-t bg-slate-50 flex justify-end gap-2 rounded-b-theme">
-              <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-theme border">Annuler</button>
-              <button onClick={() => { setSettings(draft); setOpen(false); }} className="px-4 py-2 rounded-theme bg-sky-600 text-white">Enregistrer</button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
@@ -459,69 +405,6 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency, supa }) {
   );
 }
 
-function AvailabilityPage({ activities }) {
-  const byDay = useMemo(() => {
-    const map = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-    for (const a of activities) for (const d of a.days) map[d].push(a);
-    return map;
-  }, [activities]);
-
-  return (
-    <div className="bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme">
-      <h2 className="text-lg font-semibold mb-2">Activités disponibles par jour</h2>
-      <p className="text-slate-600 text-sm mb-4">Vue rapide pour savoir quelles activités sont programmées chaque jour de la semaine.</p>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {WEEKDAYS_FR.map((d) => (
-          <div key={d.key} className="border rounded-theme p-4">
-            <h3 className="font-semibold mb-2">{d.label}</h3>
-            {byDay[d.key].length === 0 ? (
-              <p className="text-slate-500 text-sm">Aucune activité.</p>
-            ) : (
-              <ul className="space-y-1">
-                {byDay[d.key].map((a) => (
-                  <li key={a.id} className="flex items-center justify-between">
-                    <span>{a.name}</span>
-                    <span className="text-slate-600 text-sm">{formatMoney(a.price, a.currency)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PricesPage({ activities, currency }) {
-  return (
-    <div className="bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme">
-      <h2 className="text-lg font-semibold mb-2">Tarifs des activités</h2>
-      <p className="text-slate-600 text-sm mb-4">Liste simple des prix (lecture seule). Modifiez les prix dans l'onglet « Activités ».</p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-slate-600 border-b">
-              <th className="py-2 pr-3">Activité</th>
-              <th className="py-2 pr-3">Devise</th>
-              <th className="py-2 pr-3">Prix</th>
-            </tr>
-          </thead>
-          <tbody>
-            {activities.map((a) => (
-              <tr key={a.id} className="border-b last:border-0">
-                <td className="py-2 pr-3 font-medium">{a.name}</td>
-                <td className="py-2 pr-3">{a.currency || currency}</td>
-                <td className="py-2 pr-3">{formatMoney(a.price, a.currency || currency)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
 function QuotePage({ activities, currency, agencyName, phone, address }) {
   const initial = {
     date: new Date().toISOString().slice(0, 10),
@@ -589,10 +472,6 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
               <label className="block text-xs font-medium text-slate-600 mb-1">Ajouter une activité</label>
               <ActivityPicker activities={activities} onPick={(a) => addItem(a)} />
             </div>
-            <div className="sm:w-40">
-              <label className="block text-xs font-medium text-slate-600 mb-1">Remise (%)</label>
-              <input type="number" min={0} className="w-full border rounded-theme px-3 py-2" value={q.discount} onChange={(e) => setQ((s) => ({ ...s, discount: Number(e.target.value) }))} />
-            </div>
           </div>
 
           <div className="overflow-x-auto mt-3">
@@ -653,10 +532,6 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
                 <span>Sous-total</span>
                 <span>{formatMoney(total, q.items[0]?.currency || currency)}</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Remise</span>
-                <span>{q.discount || 0}% ({formatMoney(total - totalAfter, q.items[0]?.currency || currency)})</span>
-              </div>
               <div className="flex items-center justify-between font-semibold text-base mt-1">
                 <span>Total</span>
                 <span>{formatMoney(totalAfter, q.items[0]?.currency || currency)}</span>
@@ -684,15 +559,12 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
 }
 
 function ActivityPicker({ activities, onPick }) {
-  const [search, setSearch] = useState("");
-  const filtered = activities.filter((a) => a.name.toLowerCase().includes(search.toLowerCase()));
   return (
     <div className="flex gap-2">
-      <input className="flex-1 border rounded-theme px-3 py-2" placeholder="Rechercher une activité…" value={search} onChange={(e) => setSearch(e.target.value)} />
       <div className="relative">
         <select className="border rounded-theme px-3 py-2 min-w-56" onChange={(e) => { const id = e.target.value; const act = activities.find((x) => x.id === id); if (act) onPick(act); e.target.selectedIndex = 0; }}>
           <option value="">Choisir…</option>
-          {filtered.map((a) => <option key={a.id} value={a.id}>{a.name} — {formatMoney(a.price, a.currency)}</option>)}
+          {activities.map((a) => <option key={a.id} value={a.id}>{a.name} — {formatMoney(a.price, a.currency)}</option>)}
         </select>
       </div>
     </div>
@@ -737,9 +609,9 @@ function renderTextQuote(q, agencyName, phone, address) {
   const total = q.items.reduce((s, it) => s + it.unitPrice * it.qty, 0);
   const totalAfter = Math.max(0, total * (1 - (Number(q.discount) || 0) / 100));
   lines.push("");
-  lines.push(`Sous-total: ${formatMoney(total, q.items[0]?.currency || "EGP")}`);
+  lines.push(`Sous-total: ${formatMoney(total, q.items[0]?.currency || "EUR")}`);
   lines.push(`Remise: ${q.discount || 0}%`);
-  lines.push(`Total: ${formatMoney(totalAfter, q.items[0]?.currency || "EGP")}`);
+  lines.push(`Total: ${formatMoney(totalAfter, q.items[0]?.currency || "EUR")}`);
   if (q.notes) {
     lines.push("");
     lines.push(`Notes: ${q.notes}`);
