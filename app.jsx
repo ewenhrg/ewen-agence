@@ -209,7 +209,7 @@ function Header({ settings, setSettings }) {
   useEffect(() => setDraft(settings), [settings]);
 
   return (
-    <header className="bg-gradient-to-br from-brand-50 to-sky-50 border-b border-slate-200">
+    <header className="bg-base-200 border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{settings.agencyName}</h1>
@@ -225,8 +225,8 @@ function TabButton({ children, active, onClick }) {
     <button
       onClick={onClick}
       className={classNames(
-        "px-4 py-2 rounded-theme text-sm whitespace-nowrap",
-        active ? "bg-sky-600 text-white shadow-theme" : "bg-white border text-slate-700 hover:bg-slate-50"
+        "btn btn-sm whitespace-nowrap",
+        active ? "btn-primary" : "btn-ghost"
       )}
     >
       {children}
@@ -240,7 +240,7 @@ function TextField({ label, value, onChange, placeholder, type = "text" }) {
       {label && <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>}
       <input
         type={type}
-        className="w-full border rounded-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-200"
+        className="input input-bordered w-full"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -324,7 +324,7 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency, supa }) {
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1 bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme">
+      <div className="lg:col-span-1 bg-base-100 rounded-theme-2x border p-4 sm:p-6 shadow-theme">
         <h2 className="text-lg font-semibold mb-4">{editingId ? "Modifier l'activité" : "Nouvelle activité"}</h2>
         <div className="space-y-3">
           <TextField label="Nom" value={form.name} onChange={(v) => setForm((f) => ({ ...f, name: v }))} placeholder="Ex: Safari Quad (3h)" />
@@ -332,7 +332,7 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency, supa }) {
             <TextField label="Prix" type="number" value={form.price} onChange={(v) => setForm((f) => ({ ...f, price: Number(v) }))} />
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Devise</label>
-              <select className="w-full border rounded-theme px-3 py-2" value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}>
+              <select className="select select-bordered w-full" value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}>
                 {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
               </select>
             </div>
@@ -349,17 +349,17 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency, supa }) {
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Notes (optionnel)</label>
-            <textarea className="w-full border rounded-theme px-3 py-2 min-h-[80px]" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Transfert inclus, boisson, etc." />
+            <textarea className="textarea textarea-bordered w-full min-h-[80px]" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Transfert inclus, boisson, etc." />
           </div>
         </div>
         <div className="mt-4 flex gap-2">
-          <button onClick={save} disabled={busy} className="px-4 py-2 rounded-theme bg-sky-600 text-white">{editingId ? "Mettre à jour" : "Ajouter"}</button>
-          <button onClick={reset} disabled={busy} className="px-4 py-2 rounded-theme border">Réinitialiser</button>
+          <button onClick={save} disabled={busy} className="btn btn-primary">{editingId ? "Mettre à jour" : "Ajouter"}</button>
+          <button onClick={reset} disabled={busy} className="btn btn-outline">Réinitialiser</button>
         </div>
         {supa ? <p className="text-xs text-slate-500 mt-2">Synchro: Supabase activé</p> : <p className="text-xs text-slate-500 mt-2">Synchro: local uniquement</p>}
       </div>
 
-      <div className="lg:col-span-2 bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme">
+      <div className="lg:col-span-2 bg-base-100 rounded-theme-2x border p-4 sm:p-6 shadow-theme">
         <h2 className="text-lg font-semibold mb-4">Liste des activités</h2>
         {activities.length === 0 ? (
           <p className="text-slate-600">Aucune activité pour le moment.</p>
@@ -390,8 +390,8 @@ function ActivitiesPage({ activities, setActivities, defaultCurrency, supa }) {
                     <td className="py-2 pr-3 text-slate-600">{a.notes}</td>
                     <td className="py-2 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => { setEditingId(a.id); setForm({ ...a }); }} className="px-3 py-1.5 rounded-theme border">Modifier</button>
-                        <button onClick={() => removeItem(a.id)} disabled={busy} className="px-3 py-1.5 rounded-theme border bg-rose-50 text-rose-700">Supprimer</button>
+                        <button onClick={() => { setEditingId(a.id); setForm({ ...a }); }} className="btn btn-sm">Modifier</button>
+                        <button onClick={() => removeItem(a.id)} disabled={busy} className="btn btn-sm btn-error btn-outline">Supprimer</button>
                       </div>
                     </td>
                   </tr>
@@ -443,7 +443,7 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
 
   return (
     <div className="grid lg:grid-cols-3 gap-6 print:block">
-      <div className="lg:col-span-2 bg-white rounded-theme-2x border p-4 sm:p-6 shadow-theme print:shadow-none print:border-0">
+      <div className="lg:col-span-2 bg-base-100 rounded-theme-2x border p-4 sm:p-6 shadow-theme print:shadow-none print:border-0">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold">Devis</h2>
@@ -462,7 +462,7 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
           <TextField label="Téléphone" value={q.phone} onChange={(v) => setQ((s) => ({ ...s, phone: v }))} />
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
-            <input type="date" className="w-full border rounded-theme px-3 py-2" value={q.date} onChange={(e) => setQ((s) => ({ ...s, date: e.target.value }))} />
+            <input type="date" className="input input-bordered w-full" value={q.date} onChange={(e) => setQ((s) => ({ ...s, date: e.target.value }))} />
           </div>
         </div>
 
@@ -537,10 +537,10 @@ function QuotePage({ activities, currency, agencyName, phone, address }) {
                 <span>{formatMoney(totalAfter, q.items[0]?.currency || currency)}</span>
               </div>
               <div className="mt-3 flex gap-2">
-                <button onClick={printQuote} className="px-4 py-2 rounded-theme bg-sky-600 text-white">Imprimer le devis</button>
+                <button onClick={printQuote} className="btn btn-primary">Imprimer le devis</button>
                 <button
                   onClick={() => navigator.clipboard.writeText(renderTextQuote(q, agencyName, phone, address))}
-                  className="px-4 py-2 rounded-theme border"
+                  className="btn btn-outline"
                 >
                   Copier en texte
                 </button>
